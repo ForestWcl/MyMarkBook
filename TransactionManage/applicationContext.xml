@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-4.3.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-4.3.xsd 
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop-4.3.xsd 
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+		
+	<!-- 在basePackage指定的包及后代包中扫描所有的组件类，将其实例化，放入整个容器中 -->
+	<!-- 组件类（在类的声明上，使用了@Component注解的类、@Controller、@Service、@Repository）  -->
+	<context:component-scan base-package="com.bwf.book" >
+		<context:include-filter type="annotation" expression="org.aspectj.lang.annotation.Aspect"/>
+	</context:component-scan>
+	
+	<!-- 负责将容器中所有的“切面”（在类的生命上，使用了@Aspect注解的类）进行自动代理生成 -->
+	<aop:aspectj-autoproxy />
+		
+	<!-- 1、扫描指定的properties文件，将属性信息加载到内存中 -->
+	<!-- 2、“后处理”所有的其他普通Bean，将属性值配置中出现${}符的值用内存中加载的属性值替换 -->
+	<context:property-placeholder location="classpath:jdbc.properties" />
+		
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driver}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<property name="initialSize" value="8" />
+	</bean>
+		
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="packagesToScan">
+			<list>
+				<value>com.bwf.book.entity</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="tm" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	<tx:advice id="txAdvice" transaction-manager="tm">
+		<tx:attributes>
+			<tx:method name="get*" read-only="true" />
+			<tx:method name="search*" read-only="true" />
+			<tx:method name="loginCheck" read-only="true" />
+			<tx:method name="*" />
+		</tx:attributes>
+	</tx:advice>
+	
+	<aop:config>
+		<aop:advisor advice-ref="txAdvice" pointcut="execution(* com.bwf.book.service.impl.*.*(..))" />
+	</aop:config>
+	
+	<!-- 
+	（1）使用XML配置AOP
+	<aop:config>
+		
+			<aop:pointcut expression="execution(* com.bwf.book.dao.impl.*.*(..))" id="daoPointcut"/>
+				
+			<aop:aspect ref="logAdvice">
+				<aop:before method="write"  pointcut-ref="daoPointcut" />				
+				<aop:after-returning method="write2"  returning="rt"  pointcut-ref="daoPointcut" />
+				<aop:after-throwing method="write3" throwing="ex" pointcut-ref="daoPointcut" />
+				<aop:after method="write4" pointcut-ref="daoPointcut" />
+				<aop:around method="write5" pointcut-ref="daoPointcut" />				
+			</aop:aspect>			
+		
+	</aop:config>
+ 	-->
+ 	
+</beans>
