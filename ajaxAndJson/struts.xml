@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+    "http://struts.apache.org/dtds/struts-2.5.dtd">
+<struts>
+
+	<package name="manage-bookMgr" extends="json-default" namespace="/manage/book">
+	
+		<action name="qureyCategory" class="bookMgr" method="qureyCategory">
+			<result type="json">
+				<param name="root">categoryList</param>
+			</result>		
+		</action>	
+		
+		<action name="categoryPage" class="bookMgr" method="categoryPage">
+			<result>/WEB-INF/jsp/manager/categorymgr.jsp</result>
+		</action>
+		
+		<action name="addCategory" class="bookMgr" method="addCategory">
+			<result>/WEB-INF/jsp/manager/categorymgr.jsp</result>
+			<result name="error">/WEB-INF/jsp/manager/categorymgr.jsp</result>
+		</action>
+		
+		<action name="bookmgr" class="bookMgr" method="bookmgr">
+			<result>/WEB-INF/jsp/manager/bookmgr.jsp</result>
+		</action>
+		
+		<action name="addBook" class="bookMgr" method="addBook">
+			<param name="fileSavePath">/pic/</param>
+			<result name="input">/WEB-INF/jsp/manager/bookmgr.jsp</result>
+		</action>
+		
+		<action name="removeCategory" class="bookMgr" method="removeCategory">
+			<result type="chain">qureyCategory</result>
+			<result name="error" type="chain">qureyCategory</result>
+		</action>
+		
+		<action name="showBooks" class="bookMgr" method="showBooks">
+			<result type="json">
+				<param name="root">books</param>
+			</result>
+		</action>
+		
+	</package>
+
+</struts>
