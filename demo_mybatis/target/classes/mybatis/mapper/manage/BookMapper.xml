@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+  <mapper namespace="com.bwf.term14.book.mapper.BookMapper">
+  
+  	<cache />
+  
+  	<resultMap type="Book" id="bookResultMap">
+  		<id property="id" column="BID"  />
+  		<result property="title" column="BTitle" />
+  		<result property="author" column="BAuthor" />
+  		<result property="price" column="BPrice" />
+  		<result property="publisher" column="BPublisher" />
+  		<result property="photo" column="BPhoto" />
+  		<association property="belongCategory"  javaType="Category">
+  			<id property="id" column="CID" />
+  			<result property="name" column="CName" />
+  		</association>	
+  	</resultMap>
+  	
+  	<sql id="SELECT_ALL_BOOKS">
+  		select BID, BTitle, BAuthor, BPrice, BPublisher, BPhoto, CID, CName  from BookInfo b left join CategoryInfo c on (b.BCategoryID = c.CID)
+  	</sql>
+  	
+  	<insert id="add">
+  		insert into BookInfo (BTitle, BAuthor, BPrice, BPublisher, BPhoto, BCategoryID) values 
+  		<foreach collection="books" item="b" separator=",">
+  			(#{b.title}, #{b.author}, #{b.price}, #{b.publisher}, #{b.photo}, 
+  			<if test="b.belongCategory==null">null</if>
+  			<if test="b.belongCategory!=null">#{b.belongCategory.id}</if>)
+  		</foreach>
+  	</insert>
+  	
+  	<select id="getBooks" resultMap="bookResultMap">
+  		<include refid="SELECT_ALL_BOOKS" /> 
+  		<choose>
+  			<when test="condition == null"></when>
+  			<when test="(condition.title == null || condition.title == '') and (condition.categoryName == null || condition.categoryName == '' ||condition.categoryName == '全部')">
+  				  limit #{condition.firstResult}, #{condition.pageSize}
+  			</when>
+  			<when test="condition.title == null || condition.title == ''">
+  				where CName = #{condition.categoryName} limit #{condition.firstResult}, #{condition.pageSize}
+  			</when>
+  			<when test="condition.categoryName == null || condition.categoryName == '' ||condition.categoryName == '全部'">
+ 				<bind name="myTitle" value="'%' + condition.title + '%'"/>
+  				where BTitle like #{myTitle} limit #{condition.firstResult}, #{condition.pageSize}
+  			</when>
+  			<otherwise>
+  				where CName = #{condition.categoryName} and BTitle like '%#{condition.title}%' limit #{condition.firstResult}, #{condition.pageSize}
+  			</otherwise>
+  		</choose>  	
+  	</select>
+  	
+  </mapper>
