@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.bwf.term14.book.mapper.AdminMapper">
+  
+	  <resultMap id="adminResultMap" type="Admin" >
+	  		<id column="AID" property="id" />
+	  		<result column="ALoginID" property="loginId" />
+	  		<result column="ALoginPsw" property="loginPsw" />
+	  		<result column="AName" property="name" />
+	  </resultMap>
+	
+	  	<select id="getAdminByLoginId"  resultMap="adminResultMap">
+	  		select AID , ALoginID, ALoginPsw, AName from admininfo where ALoginID = #{loginId}
+	  	</select>
+	  	
+	  	<select id="getAdminNameDetails"  resultType="map">
+	  		select CHAR_LENGTH(AName) as nameLength, count(*) as adminCount, count(char_length(ALoginID)) as loginidLength from admininfo group by CHAR_LENGTH(AName) order by nameLength desc
+	  	</select>
+	  	
+	  	<select id="getAllAdmins" resultType="Admin">
+	  		select AID id, ALoginID loginId, ALoginPsw loginPsw, AName name from admininfo
+	  	</select>
+	  	
+	  	<insert id="add">
+	  		insert into admininfo values (null, #{admin.loginId}, #{admin.loginPsw}, #{admin.name})
+	  	</insert>	
+  
+  </mapper>
